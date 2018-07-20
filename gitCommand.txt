@@ -1,0 +1,1 @@
+git status              //shows files and folders that will be included in the commnit

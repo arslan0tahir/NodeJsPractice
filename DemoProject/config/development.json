@@ -1,6 +1,6 @@
 {
     "name": "Express App development",
-    "mail":{
+    "mail":{ 
         "host": "development mail"
     }
 }

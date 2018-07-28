@@ -1,4 +1,6 @@
 const express=require('express');
+const morgan=require('morgan');
+const config=require('config');
 const Joi=require('joi');
 
 const app=express();
@@ -8,11 +10,21 @@ const cources=[
     {id:3, title:"course-3"},
 ]
 
-//middleware functions
+
+console.log(`# Node Configuration Package: ${config.get('name')}`);
+console.log(`# Node configuration Mail.host:  ${config.get('mail.host')}`);
+console.log(`# Node configuration Mail ENV Password:  ${config.get('mail.password')}`);
+
+
+//*************middleware functions*****************
+
 app.use(express.json()) //middleware to parse body of http req to json
+if (app.get('env')=="development"){
+    console.log(`Server Mode: ${app.get('env')}`)
+    app.use(morgan('tiny'));// third party middleware
 
-
-
+}
+//************************************************** */
 
 
 app.get("/",(req,res)=>{
@@ -24,27 +36,12 @@ app.get("/api/cources",(req,res)=>{
 })
 
 app.post("/api/cources",(req,res)=>{
-    //list down all json properties that are destined to be used in code and perform input validation
-    const title=req.body.title;
+    
 
+    const {error}=validateCourceInput(req)
 
-    //validation goes here
-    // if (title.length<3 || !title){
-    //     res.status(400).send("Invalid data")
-    //     return;
-    // }
-
-
-    //input validation using joi
-    const schema={
-        title: Joi.string().min(3).max(255).required(),
-    }
-
-    const result=Joi.validate(req.body,schema)
-    //console.log(result);
-
-    if(result.error){
-        res.status(400).send(result.error)
+    if(error){
+        res.status(400).send(error)
         return;
     }
 
@@ -65,6 +62,26 @@ app.post("/api/cources",(req,res)=>{
 })
 
 
+app.put('/api/cources/:id',(req,res)=>{
+    const {error}=validateCourceInput(req);
+    if(error){
+        res.status(400).send(error)
+        return;
+    }
+
+    const updatedResult=cources.find((obj)=>{
+        if (obj.id==req.params.id){
+            obj.title=req.body.title;
+            return obj;
+        }
+    });
+    if(updatedResult){
+        res.send(updatedResult);
+    }
+    
+    res.status(404).send("Item not found")
+
+})
 
 
 ///api/posts/:month/:year    is also valid
@@ -87,6 +104,52 @@ app.get("/api/cources/:id",(req,res)=>{
 
 });
 
+
+
+
+app.delete('/api/cources/:id',(req,res)=>{
+    
+
+    const toBeDeletedObj=cources.find((obj,index)=>{
+        if (obj.id==req.params.id){
+            
+            myIndex=index;
+            return obj;
+        }
+    });
+
+    if(toBeDeletedObj){
+        cources.splice(myIndex,1);
+        //delete toBeDeletedObj;
+        res.send(toBeDeletedObj);
+        return
+    }
+    
+    res.status(404).send("Item not found")
+
+})
+
+
+
+
+//input validation
+const validateCourceInput=function(req){
+    
+    //input validation using joi
+    const schema={
+        title: Joi.string().min(3).max(255).required(),
+    }
+    const result=Joi.validate(req.body,schema)
+
+    console.log(result);
+    return result;
+        
+
+
+}
+
+
+//webserver
 const port=process.env.PORT || 5000
 app.listen(port,()=>{
     console.log(`Listening on port ${port}`)

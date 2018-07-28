@@ -1,7 +1,14 @@
+//temp setting of  env var for testing
+process.env.DEBUG="app:startup";
+
+
 const express=require('express');
 const morgan=require('morgan');
 const config=require('config');
 const Joi=require('joi');
+const appDebug=require('debug')('app:startup');
+const dbDebug=require('debug')('app:db');
+
 
 const app=express();
 const cources=[
@@ -10,10 +17,11 @@ const cources=[
     {id:3, title:"course-3"},
 ]
 
+//set env variable DEBUG
 
 console.log(`# Node Configuration Package: ${config.get('name')}`);
-console.log(`# Node configuration Mail.host:  ${config.get('mail.host')}`);
-console.log(`# Node configuration Mail ENV Password:  ${config.get('mail.password')}`);
+appDebug(`# Node configuration Mail.host:  ${config.get('mail.host')}`);
+appDebug(`# Node configuration Mail ENV Password:  ${config.get('mail.password')}`);
 
 
 //*************middleware functions*****************
